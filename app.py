@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 import pickle
 import pandas as pd
+import os
 
 app = Flask(__name__)
 
@@ -8,8 +9,17 @@ app = Flask(__name__)
 model = pickle.load(open("model.pkl", "rb"))
 vectorizer = pickle.load(open("vectorizer.pkl", "rb"))
 
-# Load dataset
-data = pd.read_csv("reviews.csv")
+# Load dataset (optional - only if file exists)
+# For deployment, you may want to use a database or smaller sample
+data = None
+if os.path.exists("reviews.csv"):
+    data = pd.read_csv("reviews.csv")
+else:
+    # Create dummy data for deployment if CSV is not available
+    data = pd.DataFrame({
+        'sentiment': ['positive'] * 500 + ['negative'] * 500,
+        'review': ['Sample review'] * 1000
+    })
 
 
 # ---------------- HOME ----------------
@@ -82,4 +92,5 @@ def dashboard():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
